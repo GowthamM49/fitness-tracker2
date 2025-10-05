@@ -4,7 +4,6 @@ node_modules/
 *.bat
 *.sh
 verify-setup.js
-package.json
 .gitignore
 COMPLETE_SETUP_GUIDE.md
 DEFAULT_VALUES_REMOVED.md
@@ -16,4 +15,3 @@ MONGODB_SETUP.md
 README.md
 start-dev.bat
 start-dev.sh
-vercel.json
