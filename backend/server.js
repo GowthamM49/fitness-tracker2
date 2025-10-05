@@ -19,15 +19,51 @@ if (missingEnvVars.length > 0) {
 }
 
 // Middleware
+const allowedOriginsFromEnv = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+// Always include FRONTEND_URL if provided, plus localhost for dev
+const staticAllowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+].filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([
+  ...staticAllowedOrigins,
+  ...allowedOriginsFromEnv
+]));
+
+const isVercelPreview = (origin) => {
+  if (!origin) return false;
+  try {
+    const { hostname } = new URL(origin);
+    // Match *.vercel.app previews
+    return hostname.endsWith('.vercel.app');
+  } catch (_e) {
+    return false;
+  }
+};
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow non-browser requests (like curl/Postman) which may not send origin
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin) || isVercelPreview(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS not allowed for origin: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
