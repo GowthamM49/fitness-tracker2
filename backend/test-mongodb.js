@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 // Test MongoDB connection
 async function testConnection() {
   try {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/fitness-tracker';
+    const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/fitness-tracker';
     
     console.log('Testing MongoDB connection...');
     console.log('Connection string:', MONGODB_URI);
