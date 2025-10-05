@@ -1,0 +1,83 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const connectDB = require('./config/database');
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+
+// Environment validation
+const requiredEnvVars = ['JWT_SECRET', 'MONGO_URI'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+  console.error('Please check your .env file and ensure all required variables are set.');
+  process.exit(1);
+}
+
+// Middleware
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Connect to database
+connectDB();
+
+// Routes
+app.get('/', (req, res) => {
+  res.json({ message: 'KEC Fitness Tracker API is running!' });
+});
+
+// Health check route
+app.use('/api/health', require('./routes/health'));
+
+// Auth routes
+app.use('/api/auth', require('./routes/auth'));
+
+// User routes
+app.use('/api/users', require('./routes/users'));
+
+// Workout routes
+app.use('/api/workouts', require('./routes/workouts'));
+
+// Diet routes
+app.use('/api/diet', require('./routes/diet'));
+
+// Progress routes
+app.use('/api/progress', require('./routes/progress'));
+
+// Community routes
+app.use('/api/community', require('./routes/community'));
+
+// Admin routes
+app.use('/api/admin', require('./routes/admin'));
+
+// Recommendation routes
+app.use('/api/recommendations', require('./routes/recommendations'));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
+
+const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🌐 API URL: http://localhost:${PORT}/api`);
+  console.log(`📊 Environment: ${NODE_ENV}`);
+  console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+}); 

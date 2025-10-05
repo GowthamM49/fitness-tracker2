@@ -1,0 +1,37 @@
+services:
+  # Backend Service
+  - type: web
+    name: fitness-tracker-backend
+    env: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    rootDir: ./backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        fromDatabase:
+          name: fitness-tracker-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://fitness-tracker-frontend.onrender.com
+      - key: PORT
+        value: 10000
+
+  # Frontend Service
+  - type: web
+    name: fitness-tracker-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    rootDir: ./frontend
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://fitness-tracker-backend.onrender.com/api
+
+databases:
+  - name: fitness-tracker-db
+    plan: free
